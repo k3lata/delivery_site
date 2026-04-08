@@ -7,18 +7,18 @@ export const CartContext = createContext(null);
 export function CartProvider({ children }) {
   const { user } = useAuth();
 
-  // 🔑 ключ зависит от пользователя
+
   const cartKey = user?._id ? `cart_${user._id}` : "cart_guest";
 
   const [cartItems, setCartItems] = useState([]);
 
-  // загрузка корзины при смене пользователя
+
   useEffect(() => {
     const saved = localStorage.getItem(cartKey);
     setCartItems(saved ? JSON.parse(saved) : []);
   }, [cartKey]);
 
-  // сохранение корзины
+
   useEffect(() => {
     localStorage.setItem(cartKey, JSON.stringify(cartItems));
   }, [cartItems, cartKey]);

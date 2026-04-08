@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import PageWrapper from "../../components/layout/PageWrapper";
 import useAuth from "../../hooks/useAuth";
 import { uploadAvatar } from "../../api/usersApi";
+import { SERVER_URL } from "../../config";
 
-const SERVER_URL = "http://localhost:5000";
 
 export default function ProfilePage() {
   const { user, token, updateUser } = useAuth();

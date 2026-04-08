@@ -3,7 +3,7 @@ import PageWrapper from '../../components/layout/PageWrapper';
 import useAuth from '../../hooks/useAuth';
 import formatPrice from '../../utils/formatPrice';
 
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../../config';
 
 export default function AdminPage() {
   const { token } = useAuth();

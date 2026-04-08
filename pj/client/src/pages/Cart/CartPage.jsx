@@ -6,7 +6,7 @@ import formatPrice from '../../utils/formatPrice';
 import './CartPage.css';
 import { useToast } from '../../context/ToastContext';
 
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../../config';
 
 export default function CartPage() {
   const {

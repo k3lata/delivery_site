@@ -5,7 +5,7 @@ import useCart from '../../hooks/useCart';
 import { useNavigate } from 'react-router-dom';
 import formatPrice from '../../utils/formatPrice';
 
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../../config';
 
 export default function OrdersPage() {
   const { token } = useAuth();

@@ -10,6 +10,7 @@ const dishSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     image: { type: String, default: '' },
     ingredients: { type: [String], default: [] },
+    ingredientKeywords: [String],
   },
   { timestamps: true }
 );

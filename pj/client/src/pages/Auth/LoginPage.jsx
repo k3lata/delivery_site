@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import PageWrapper from '../../components/layout/PageWrapper';
 import useAuth from '../../hooks/useAuth';
 
-const API_URL = 'http://localhost:5000/api/auth';
 
 export default function LoginPage() {
   const navigate = useNavigate();
