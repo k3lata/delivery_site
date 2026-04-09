@@ -4,6 +4,11 @@ import useCart from '../../hooks/useCart';
 import { cuisines, dishes } from '../../data/menuData';
 import formatPrice from '../../utils/formatPrice';
 
+import {
+  parseExcludedIngredients,
+  normalizeDishIngredients
+} from "../../utils/ingredientNormalizer";
+
 export default function MenuBuilderPage() {
   const { addToCart } = useCart();
   const [budget, setBudget] = useState('12000');
@@ -14,40 +19,104 @@ export default function MenuBuilderPage() {
   const [maxItems, setMaxItems] = useState('3');
   const [generatedMenu, setGeneratedMenu] = useState([]);
   const [summary, setSummary] = useState('');
+  const [totalPrice, setTotalPrice] = useState(0);
 
   const excludedList = useMemo(
     () => excludedIngredients.split(',').map((item) => item.trim().toLowerCase()).filter(Boolean),
     [excludedIngredients]
   );
+  const ingredientAliases = {
+    egg: ["egg", "eggs", "яйцо", "яйца", "яичный", "яичные"],
+    peanut: ["peanut", "peanuts", "арахис"],
+    milk: ["milk", "молоко"],
+    cheese: ["cheese", "сыр", "сыры"],
+    chicken: ["chicken", "курица", "куриный", "куриное"],
+    beef: ["beef", "говядина"],
+    pork: ["pork", "свинина"],
+    fish: ["fish", "рыба"],
+    seafood: ["seafood", "морепродукты", "креветки", "shrimp", "prawn", "prawns"],
+    mushroom: ["mushroom", "mushrooms", "гриб", "грибы"],
+    onion: ["onion", "лук"],
+    garlic: ["garlic", "чеснок"],
+    tomato: ["tomato", "tomatoes", "томат", "томаты", "помидор", "помидоры"],
+    nuts: ["nut", "nuts", "орех", "орехи"],
+    soy: ["soy", "soya", "соя"],
+    rice: ["rice", "рис"],
+    potato: ["potato", "potatoes", "картофель", "картошка"],
+  };
+  
+  const normalizeIngredient = (value) => {
+    const cleaned = String(value || "")
+      .toLowerCase()
+      .replace(/ё/g, "е")
+      .trim();
+  
+    for (const [key, aliases] of Object.entries(ingredientAliases)) {
+      if (aliases.includes(cleaned)) {
+        return key;
+      }
+    }
+  
+    return cleaned;
+  };
 
   const handleGenerate = () => {
     let filtered = [...dishes];
-
-    if (cuisine) filtered = filtered.filter((dish) => dish.cuisine === cuisine);
-    if (category) filtered = filtered.filter((dish) => dish.category === category);
-    if (texture) filtered = filtered.filter((dish) => dish.texture === texture || dish.category === texture);
-    if (excludedList.length) {
-      filtered = filtered.filter((dish) => !dish.ingredients.some((ingredient) => excludedList.includes(String(ingredient).toLowerCase())));
+  
+    const normalizedExcludedList = excludedList.map((item) =>
+      normalizeIngredient(item)
+    );
+  
+    if (cuisine) {
+      filtered = filtered.filter((dish) => dish.cuisine === cuisine);
     }
-
+  
+    if (category) {
+      filtered = filtered.filter((dish) => dish.category === category);
+    }
+  
+    if (texture) {
+      filtered = filtered.filter(
+        (dish) => dish.texture === texture || dish.category === texture
+      );
+    }
+  
+    if (excludedList.length) {
+      const normalizedExcluded = excludedList.map((item) =>
+        normalizeIngredient(item)
+      );
+    
+      filtered = filtered.filter((dish) => {
+        const dishIngredients = Array.isArray(dish.ingredients)
+          ? dish.ingredients
+          : String(dish.ingredients || "").split(",");
+    
+        const normalizedDishIngredients = dishIngredients.map((item) =>
+          normalizeIngredient(item)
+        );
+    
+        return !normalizedDishIngredients.some((ingredient) =>
+          normalizedExcluded.includes(ingredient)
+        );
+      });
+    }
+  
     filtered.sort((a, b) => a.price - b.price);
-
+  
     const result = [];
     let total = 0;
+  
     for (const dish of filtered) {
-      if (result.length >= Number(maxItems || 0 || 3)) break;
+      if (result.length >= Number(maxItems || 3)) break;
+  
       if (total + dish.price <= Number(budget || 0)) {
         result.push(dish);
         total += dish.price;
       }
     }
-
+  
     setGeneratedMenu(result);
-    setSummary(
-      result.length
-        ? `Подобрано ${result.length} блюд на ${formatPrice(total)}.`
-        : 'По этим параметрам ничего не подошло. Попробуй увеличить бюджет или убрать часть фильтров.'
-    );
+    setTotalPrice(total);
   };
 
   const addWholeMenu = () => generatedMenu.forEach((dish) => addToCart(dish));
@@ -100,7 +169,7 @@ export default function MenuBuilderPage() {
 
               <label>
                 <span>Исключить ингредиенты</span>
-                <input value={excludedIngredients} onChange={(e) => setExcludedIngredients(e.target.value)} placeholder="например eggs, peanuts" />
+                <input value={excludedIngredients} onChange={(e) => setExcludedIngredients(e.target.value)} placeholder="например яйца, арахис" />
               </label>
 
               <button type="button" className="primary-button" onClick={handleGenerate}>Составить меню</button>
